@@ -1,0 +1,6 @@
+          ansible_user: raylink
+          ansible_port: 22
+          ansible_become: yes
+          ansible_become_user: root
+          ansible_become_password: 123
+          ansible_ssh_private_key: ~/.ssh/remote
