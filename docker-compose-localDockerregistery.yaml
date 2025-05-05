@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  registry:
+    image: registry:2.7
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+      - "4318:4318"
+    environment:
+      REGISTRY_STORAGE_DELETE_ENABLED: "true" # Enable image deletion (use with caution)
+    volumes:
+      - registry-data:/var/lib/registry
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/v2/"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+    networks:
+      - registry-network
+
+networks:
+  registry-network:
+    driver: bridge
+
+volumes:
+  registry-data:
