@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   registry:
-    image: registry:2.7
+    image: registry:3.0
     restart: unless-stopped
     ports:
       - "5000:5000"
@@ -19,9 +19,26 @@ services:
     networks:
       - registry-network
 
+  provisioner:
+    image: rpi:latest-build-20250501
+    restart: unless-stopped
+    network_mode: "host"
+    # ports: 
+    #   - "81:80"
+    #   - "444:443"
+    volumes:
+      - cmprovision_uploads:/var/lib/cmprovision/public/uploads
+      - cmprovision_db:/var/lib/cmprovision/database
+      - cmprovision_logs:/var/lib/cmprovision/storage/logs
+    
+    command: /bin/bash -c ""
+
 networks:
   registry-network:
     driver: bridge
 
 volumes:
   registry-data:
+  cmprovision_uploads:
+  cmprovision_db:
+  cmprovision_logs:
