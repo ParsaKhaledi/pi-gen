@@ -1,5 +1,5 @@
-ARG BASE_IMAGE=debian:bullseye
-FROM ${BASE_IMAGE}
+ARG BASE_IMAGE=debian:bookworm-20250428-slim
+FROM --platform=linux/arm64 ${BASE_IMAGE}
 
 LABEL maintainer="Parsa Khaledi <pa.aerospace@gmail.com>"
 
@@ -20,8 +20,7 @@ RUN apt -y update && \
         git vim parted \
         quilt coreutils  zip\
         libarchive-tools libcap2-bin rsync grep udev xz-utils curl git file kmod  \
-        gpg \
-    && rm -rf /var/lib/apt/lists/*
+        gpg 
 
 ### Set User	
 RUN groupadd ${USER_NAME} --gid ${USER_GID} && \
@@ -35,7 +34,7 @@ USER ${USER_NAME}
 WORKDIR /home/${USER_NAME}
 
 
-RUN git clone -b v1.6.3 https://github.com/raspberrypi/cmprovision.git && cd cmprovision &&\
+RUN wget https://github.com/raspberrypi/cmprovision/releases/download/v1.6.3/cmprovision4_1.6.3_all.deb &&\
     sudo apt install ./cmprovision4_*_all.deb 
 
 # VOLUME [ "/cmprovisioner"]
