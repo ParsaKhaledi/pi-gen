@@ -1,11 +1,11 @@
-ARG BASE_IMAGE=debian:bookworm-20250428-slim
+ARG BASE_IMAGE=172.10.10.209:5000/raspberrypicm4-ioboard-debian:run-20250501
 FROM --platform=linux/arm64 ${BASE_IMAGE}
 
 LABEL maintainer="Parsa Khaledi <pa.aerospace@gmail.com>"
 
 SHELL ["/bin/bash", "-c"]
 
-ARG USER_NAME=rpi
+ARG USER_NAME=pi
 ARG USER_UID=1000
 ARG USER_GID=1000
 
@@ -20,26 +20,36 @@ RUN apt -y update && \
         git vim parted \
         quilt coreutils  zip\
         libarchive-tools libcap2-bin rsync grep udev xz-utils curl git file kmod  \
-        gpg 
+        gpg wget iputils-ping apt-utils dpkg-dev
 
-### Set User	
+### Set User
 RUN groupadd ${USER_NAME} --gid ${USER_GID} && \
     useradd -l -m ${USER_NAME} -u ${USER_UID} -g ${USER_GID} -s /bin/bash && \
-	echo "${USER_NAME} ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/${USER_NAME} && \
-	mkdir -p /home/${USER_NAME} && \
-	chmod 0440 /etc/sudoers.d/${USER_NAME} && chown -R ${USER_NAME}:${USER_NAME} /${USER_NAME} 
+        echo "${USER_NAME} ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/${USER_NAME} && \
+        mkdir -p /home/${USER_NAME} && \
+        chmod 0440 /etc/sudoers.d/${USER_NAME} && chown -R ${USER_NAME}:${USER_NAME} /${USER_NAME}
 
 ### Change user
-USER ${USER_NAME}
 WORKDIR /home/${USER_NAME}
 
+COPY ./deb ${WORKDIR}/deb
 
+
+RUN cd ${WORKDIR}/deb && dpkg-scanpackages . /dev/null | gzip -9 > Packages.gz &&\
+    apt-ftparchive packages . > Packages && \
+        echo "deb [trusted=yes] file:${WORKDIR}/deb ./" | sudo tee /etc/apt/sources.list.d/localrepo.list &&\
+        sudo apt update && sudo apt --fix-broken install
+
+USER ${USER_NAME}
 RUN wget https://github.com/raspberrypi/cmprovision/releases/download/v1.6.3/cmprovision4_1.6.3_all.deb &&\
-    sudo apt install ./cmprovision4_*_all.deb 
+    sudo apt install ./cmprovision4_*_all.deb
 
 # VOLUME [ "/cmprovisioner"]
 
 ### Finilize
 RUN sudo rm -rf /var/lib/apt/lists/* &&\
-	sudo apt autoremove -y
+
+
+### to download all dependencies for rpi boot, create a deb folder and run this command in deb folder
+### apt-get download $(apt-cache depends --recurse --no-recommends --no-suggests --no-conflicts --no-breaks --no-replaces --no-enhances rpiboot | grep "^\w" | sort -u)
 
