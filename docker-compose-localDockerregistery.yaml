@@ -30,6 +30,7 @@ services:
       - cmprovision_uploads:/var/lib/cmprovision/public/uploads
       - cmprovision_db:/var/lib/cmprovision/database
       - cmprovision_logs:/var/lib/cmprovision/storage/logs
+      - /etc/dhcpcd.conf:/etc/dhcpcd.conf
     
     command: /bin/bash -c ""
 
