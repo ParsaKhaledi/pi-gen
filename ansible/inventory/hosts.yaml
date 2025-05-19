@@ -1,0 +1,14 @@
+all:
+  children:
+    ansible_hosts:
+      hosts:
+        provisioner:
+          ansible_host: 127.0.0.1
+    RPIRaylink:
+      hosts:
+        RPI0:
+          ansible_host: 172.10.10.201
+    RPILtelink:
+      hosts:
+        RPI1:
+          ansible_host: 172.10.10.31 # CM4
