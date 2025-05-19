@@ -6,7 +6,7 @@ services:
     restart: unless-stopped
     ports:
       - "5000:5000"
-      - "4318:4318"
+      # - "4318:4318"
     environment:
       REGISTRY_STORAGE_DELETE_ENABLED: "true" # Enable image deletion (use with caution)
     volumes:
@@ -19,20 +19,37 @@ services:
     networks:
       - registry-network
 
-  provisioner:
-    image: rpi:latest-build-20250501
-    restart: unless-stopped
+  ansible:
+    image: docker.io/alpine/ansible:2.18.1
+    container_name: ansible
+    hostname: host_ansible
+    tty: true
     network_mode: "host"
-    # ports: 
-    #   - "81:80"
-    #   - "444:443"
+    restart: unless-stopped
+    # ports:
+    #   - "20:20"
     volumes:
-      - cmprovision_uploads:/var/lib/cmprovision/public/uploads
-      - cmprovision_db:/var/lib/cmprovision/database
-      - cmprovision_logs:/var/lib/cmprovision/storage/logs
-      - /etc/dhcpcd.conf:/etc/dhcpcd.conf
+      - ./ansible:/ansible
+      - ~/.ssh:/root/.ssh
+    # networks:
+    #   - registry-network
+    command: /bin/bash -c "sleep inf"
+
+
+  # provisioner:
+  #   image: rpi:latest-build-20250501
+  #   restart: unless-stopped
+  #   network_mode: "host"
+  #   # ports: 
+  #   #   - "81:80"
+  #   #   - "444:443"
+  #   volumes:
+  #     - cmprovision_uploads:/var/lib/cmprovision/public/uploads
+  #     - cmprovision_db:/var/lib/cmprovision/database
+  #     - cmprovision_logs:/var/lib/cmprovision/storage/logs
+  #     - /etc/dhcpcd.conf:/etc/dhcpcd.conf
     
-    command: /bin/bash -c ""
+  #   command: /bin/bash -c ""
 
 networks:
   registry-network:
@@ -40,6 +57,6 @@ networks:
 
 volumes:
   registry-data:
-  cmprovision_uploads:
-  cmprovision_db:
-  cmprovision_logs:
+  # cmprovision_uploads:
+  # cmprovision_db:
+  # cmprovision_logs:
