@@ -1,0 +1,5 @@
+- hosts: RPI-raylink
+  become: true
+  roles:
+    - setup_docker
+    - deploy_docker_compose
