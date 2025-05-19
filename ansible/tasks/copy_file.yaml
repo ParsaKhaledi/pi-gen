@@ -1,0 +1,5 @@
+- name: Copy Docker Compose file from Ansible host to remote
+  ansible.builtin.copy:
+    src: "{{ source_path }}"
+    dest: "{{ dest_path }}"
+    mode: '0644'
