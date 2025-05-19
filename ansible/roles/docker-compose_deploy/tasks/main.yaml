@@ -1,0 +1,5 @@
+- name: Copy Docker Compose file to remote host
+  ansible.builtin.include_tasks: ../../tasks/copy_file.yml
+  vars:
+    source_path: "/home/user/docker-compose.yml"
+    dest_path: "/opt/docker/docker-compose.yml"
