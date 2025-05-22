@@ -1,0 +1,5 @@
+- name: Pull required Docker images on remote host
+  ansible.builtin.shell: |
+    docker compose pull
+  args:
+    chdir: /home/{{ ansible_user }}/
