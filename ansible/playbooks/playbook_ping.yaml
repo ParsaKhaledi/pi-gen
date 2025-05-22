@@ -9,3 +9,8 @@
       ansible.builtin.debug:
         msg: Test Print Meesage 
 
+- name: PostIntsall
+  hosts: all
+  roles:
+    - docker_configure
+

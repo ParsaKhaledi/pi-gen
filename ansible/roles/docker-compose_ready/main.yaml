@@ -1,0 +1,11 @@
+- name: copy docker-compose file
+  ansible.builtin.include_tasks: tasks/copy_file.yaml
+  become: true
+  vars:
+    source_path: "{{ playbook_dir }}/files/docker-compose-localDockerregistery.yaml"
+    dest_path: "/home/{{ ansible_user }}/docker-compose-localDockerregistery.yaml"
+
+- name: Pull docker-compose required images
+  ansible.builtin.include_tasks: tasks/docker-compose_pull.yaml
+  vars:
+  file_path: "/home/{{ ansible_user }}/docker-compose-localDockerregistery.yaml"

@@ -1,0 +1,26 @@
+---
+# - name: check chest_path
+#   hosts: all
+#   tasks:
+#     - name: Print resolved user path
+#       ansible.builtin.debug:
+#         msg: "/home/{{ ansible_user }}/docker-compose.yml"
+- name: PostIntsall
+  hosts: all
+  roles:
+    - docker_configure
+
+- name: PostIntsall2
+  hosts: all
+  tasks:
+    - name: Apply docker_configure role
+      include_role:
+        name: roles/docker_configure
+    # - roles/docker-compose_ready.yaml
+# - hosts: RPILtelink
+#   tasks:
+#     - name: Copy file from Ansible host to remote
+#       ansible.builtin.copy:
+#         src: "{{ playbook_dir }}/files/docker-compose-localDockerregistery.yaml"
+#         dest: "/home/{{ ansible_user }}/docker-compose-localDockerregistery.yaml"
+#         mode: '0644'
