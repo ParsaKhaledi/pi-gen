@@ -1,0 +1,9 @@
+- name: Include shared Docker config task
+  ansible.builtin.include_tasks: ../tasks/docker_configure.yaml
+  vars:
+    registry_address: "172.10.10.200:5000"
+
+- name: Include shared restart task
+  # ansible.builtin.include_tasks: ../tasks/service_restart.yaml
+  vars:
+    service_name: docker
