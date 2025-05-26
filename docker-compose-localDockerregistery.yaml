@@ -30,10 +30,12 @@ services:
     #   - "20:20"
     volumes:
       - ./ansible:/ansible
+      - ~/.ssh/:/ansible/keys:ro
     # networks:
     #   - registry-network
     command: /bin/bash -c "
-      eval "$(ssh-agent)" && ssh-add /ansible/keys/remote && \
+      eval "$(ssh-agent)" && ssh-add /ansible/keys/remote && cd /ansible && \
+      ansible-playbook -i inventory/hosts.yaml -l RPILtelink playbooks/postsetup_raylink/postsetup_raylink.yaml -vvv &&\
       sleep inf"
 
 
