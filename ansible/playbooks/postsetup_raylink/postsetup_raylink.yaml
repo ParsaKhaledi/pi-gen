@@ -10,12 +10,36 @@
   roles:
     - docker_configure
 
-- name: PostIntsall2
+- name: PostIntsall "docker config"
   hosts: all
   tasks:
     - name: Apply docker_configure role
       include_role:
-        name: roles/docker_configure
+        name: docker_configure
+    - name: Docker Service Restart
+      ansible.builtin.include_tasks: ../../tasks/service_restart.yaml
+      vars:
+        service_name: docker
+
+- name: PostIntsall "docker compose copy and up"
+  hosts: all
+  tasks:
+    - name: Copy Docker compose file
+      ansible.builtin.include_tasks: ../../tasks/copy_files.yaml
+      vars:
+        source_path: "{{ playbook_dir }}/files/docker-compose-localDockerregistery.yaml"
+        dest_path: "/home/{{ ansible_user }}/docker-compose-localDockerregistery.yaml" 
+
+    - name: Pull required Docker images
+      ansible.builtin.include_tasks: ../../tasks/docker-compose_pull.yaml
+      vars:
+        docker_compose_file_name: "docker-compose-localDockerregistery.yaml"
+
+    - name: Add docker compose up systemd service
+      ansible.builtin.include_tasks: ../../tasks/systemd-docker-compose-up.yaml
+      vars:
+        compose_file_name: "docker-compose-localDockerregistery"
+
     # - roles/docker-compose_ready.yaml
 # - hosts: RPILtelink
 #   tasks:
