@@ -1,0 +1,5 @@
+- name: Docker compose up
+  ansible.builtin.shell: |
+    docker compose -f {{ docker_compose_file_name }} up -d
+  args:
+    chdir: /home/{{ ansible_user }}/

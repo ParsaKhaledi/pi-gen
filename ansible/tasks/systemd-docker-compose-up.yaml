@@ -1,0 +1,16 @@
+- name: Deploy Docker Compose systemd service
+  ansible.builtin.template:
+    src: ../../templates/systemd-compose-up.service
+    dest: /lib/systemd/system/docker-compose-up-{{  compose_file_name  }}.service
+  vars:
+    compose_file_name: "{{  compose_file_name  }}.yaml"
+
+- name: Reload systemd daemon
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Enable and start Docker Compose service
+  ansible.builtin.systemd:
+    name: docker-compose-up-{{  compose_file_name  }}.service
+    enabled: true
+    state: started
