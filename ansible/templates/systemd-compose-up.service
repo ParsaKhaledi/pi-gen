@@ -1,0 +1,14 @@
+[Unit]
+Description=Docker Compose Service for {{  compose_file_name }}
+Requires=docker.service
+After=docker.service
+
+[Service]
+User={{ ansible_user }}
+WorkingDirectory=/home/{{ ansible_user }}/
+ExecStart=docker compose -f {{ compose_file_name }}.yaml up -d
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
