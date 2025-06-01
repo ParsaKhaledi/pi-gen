@@ -37,6 +37,18 @@ services:
       eval "$(ssh-agent)" && ssh-add /ansible/keys/remote && cd /ansible && \
       ansible-playbook -i inventory/hosts.yaml -l RPILtelink playbooks/postsetup_raylink/postsetup_raylink.yaml -vvv &&\
       sleep inf"
+    nexus:
+    image: sonatype/nexus3:3.79.1
+    container_name: nexus
+    ports:
+      - "8081:8081" # Nexus UI and API – access it via http://localhost:8081
+      - "8082:8082"
+      - "8083:8083"
+      - "8084:8084"
+      - "8085:8085"
+    volumes:
+      - nexus-data:/nexus-data
+    restart: unless-stopped
 
 
   # provisioner:
@@ -60,6 +72,7 @@ networks:
 
 volumes:
   registry-data:
+  nexus-data:
   # cmprovision_uploads:
   # cmprovision_db:
   # cmprovision_logs:
