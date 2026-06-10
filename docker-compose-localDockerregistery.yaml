@@ -37,7 +37,7 @@ services:
       eval "$(ssh-agent)" && ssh-add /ansible/keys/remote && cd /ansible && \
       ansible-playbook -i inventory/hosts.yaml -l RPILtelink playbooks/postsetup_raylink/postsetup_raylink.yaml -vvv &&\
       sleep inf"
-    nexus:
+  nexus:
     image: sonatype/nexus3:3.79.1
     container_name: nexus
     ports:
