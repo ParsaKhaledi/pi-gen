@@ -4,7 +4,7 @@ on_chroot <<EOF
 adduser "$FIRST_USER_NAME" lpadmin
 # sudo pip3 install --user mavproxy pyserial pytime
 
-echo "Installing Docker..."
+echo "Installing Docker, Ansible, and Minicom..."
 
 # Add Docker's official GPG key
 install -m 0755 -d /etc/apt/keyrings
@@ -18,13 +18,11 @@ echo \
   tee /etc/apt/sources.list.d/docker.list > /dev/null
 apt-get update
 
-# Install Docker packages
-# Use --no-install-recommends to potentially reduce image size
-apt-get install -y --no-install-recommends docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+apt-get install -y --no-install-recommends docker.io docker-compose ansible minicom
 
 # Add user to docker group to run docker without sudo
-usermod -aG docker "$FIRST_USER_NAME" || true # Use || true to prevent build failure if user already in group
+usermod -aG docker "$FIRST_USER_NAME" || true
 
-echo "Docker installation complete."
+echo "Docker, Ansible, and Minicom installation complete."
 
 EOF
