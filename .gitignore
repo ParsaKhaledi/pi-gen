@@ -6,4 +6,8 @@ SKIP
 SKIP_IMAGES
 .pc
 *-pc
+<<<<<<< HEAD
 ansible/keys
+=======
+.vscode/
+>>>>>>> upstream/master
