@@ -8,6 +8,9 @@ BUILD_OPTS="$*"
 
 # Allow user to override docker command
 DOCKER=${DOCKER:-docker}
+BUILDX_BUILDER=${BUILDX_BUILDER:-multiarch}
+# arm64 branch builds arm64 images; override with DOCKER_PLATFORM if needed
+DOCKER_PLATFORM=${DOCKER_PLATFORM:-linux/arm64}
 
 # Ensure that default docker command is not set up in rootless mode
 if \
@@ -82,7 +85,28 @@ fi
 # Modify original build-options to allow config file to be mounted in the docker container
 BUILD_OPTS="$(echo "${BUILD_OPTS:-}" | sed -E 's@\-c\s?([^ ]+)@-c /config@')"
 
-${DOCKER} build --build-arg BASE_IMAGE=debian:trixie -t pi-gen "${DIR}"
+# Ensure buildx builder with multi-arch/QEMU support
+if ! ${DOCKER} buildx inspect "${BUILDX_BUILDER}" >/dev/null 2>&1; then
+	echo "Creating buildx builder '${BUILDX_BUILDER}'..."
+	${DOCKER} buildx create --name "${BUILDX_BUILDER}" --driver docker-container --use
+else
+	${DOCKER} buildx use "${BUILDX_BUILDER}"
+fi
+echo "Bootstrapping buildx builder '${BUILDX_BUILDER}'..."
+${DOCKER} buildx inspect --bootstrap "${BUILDX_BUILDER}"
+
+# Register QEMU handlers so non-native platforms can run (e.g. arm64 on amd64)
+echo "Installing QEMU binfmt handlers for multi-arch..."
+${DOCKER} run --privileged --rm tonistiigi/binfmt --install all
+
+echo "Building pi-gen image for platform ${DOCKER_PLATFORM} with buildx..."
+${DOCKER} buildx build \
+	--builder "${BUILDX_BUILDER}" \
+	--platform "${DOCKER_PLATFORM}" \
+	--build-arg BASE_IMAGE=debian:trixie \
+	-t pi-gen \
+	--load \
+	"${DIR}"
 
 if [ "${CONTAINER_EXISTS}" != "" ]; then
   DOCKER_CMDLINE_NAME="${CONTAINER_NAME}_cont"
@@ -94,46 +118,11 @@ else
   DOCKER_CMDLINE_POST=""
 fi
 
-# Check if binfmt_misc is required
-binfmt_misc_required=1
-case $(uname -m) in
-  aarch64)
-    binfmt_misc_required=0
-    ;;
-  arm*)
-    binfmt_misc_required=0
-    ;;
-esac
-
-# Check if qemu-aarch64 and /proc/sys/fs/binfmt_misc are present
-if [[ "${binfmt_misc_required}" == "1" ]]; then
-  if ! qemu_arm=$(which qemu-aarch64) ; then
-    echo "qemu-aarch64 not found (please install qemu-user-binfmt)"
-    exit 1
-  fi
-  if [ ! -f /proc/sys/fs/binfmt_misc/register ]; then
-    echo "binfmt_misc required but not mounted, trying to mount it..."
-    if ! mount binfmt_misc -t binfmt_misc /proc/sys/fs/binfmt_misc ; then
-        echo "mounting binfmt_misc failed"
-        exit 1
-    fi
-    echo "binfmt_misc mounted"
-  fi
-  if ! grep -q "^interpreter ${qemu_arm}" /proc/sys/fs/binfmt_misc/qemu-aarch64* ; then
-    # Register qemu-aarch64 for binfmt_misc
-    reg="echo ':qemu-aarch64-rpi:M::"\
-"\x7fELF\x02\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\xb7\x00:"\
-"\xff\xff\xff\xff\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff\xff:"\
-"${qemu_arm}:F' > /proc/sys/fs/binfmt_misc/register"
-    echo "Registering qemu-aarch64 for binfmt_misc..."
-    sudo bash -c "${reg}" 2>/dev/null || true
-  fi
-fi
-
 trap 'echo "got CTRL+C... please wait 5s" && ${DOCKER} stop -t 5 ${DOCKER_CMDLINE_NAME}' SIGINT SIGTERM
 time ${DOCKER} run \
   $DOCKER_CMDLINE_PRE \
   --name "${DOCKER_CMDLINE_NAME}" \
+  --platform "${DOCKER_PLATFORM}" \
   --privileged \
   ${PIGEN_DOCKER_OPTS} \
   --volume "${CONFIG_FILE}":/config:ro \
@@ -141,9 +130,6 @@ time ${DOCKER} run \
   $DOCKER_CMDLINE_POST \
   pi-gen \
   bash -e -o pipefail -c "
-    dpkg-reconfigure qemu-user-binfmt &&
-    # binfmt_misc is sometimes not mounted with debian trixie image
-    (mount binfmt_misc -t binfmt_misc /proc/sys/fs/binfmt_misc || true) &&
     cd /pi-gen; ./build.sh ${BUILD_OPTS} &&
     rsync -av work/*/build.log deploy/
   " &
