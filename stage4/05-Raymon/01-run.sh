@@ -4,7 +4,7 @@ on_chroot <<EOF
 adduser "$FIRST_USER_NAME" lpadmin
 # sudo pip3 install --user mavproxy pyserial pytime
 
-apt-get install -y --no-install-recommends docker.io docker-compose-plugin ansible minicom
+apt-get install -y --no-install-recommends docker.io docker-compose-plugin ansible
 
 usermod -aG docker "$FIRST_USER_NAME" || true
 systemctl enable docker
